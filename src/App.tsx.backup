@@ -1,0 +1,71 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { QueryProvider } from "./app/providers/QueryProvider"
+import { PrivateRoute } from "./app/routes/PrivateRoute"
+import { MainLayout } from "./app/layouts/MainLayout"
+import { LoginPage } from "./features/auth/pages/LoginPage"
+import { DashboardPage } from "./features/dashboard/pages/DashboardPage"
+import { ProductsListPage } from "./features/products/pages/ProductsListPage"
+import { ProductCreatePage } from "./features/products/pages/ProductCreatePage"
+import { ProductEditPage } from "./features/products/pages/ProductEditPage"
+import "./index.css"
+
+function App() {
+  return (
+    <QueryProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <DashboardPage />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/products"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <ProductsListPage />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/products/new"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <ProductCreatePage />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/products/:id/edit"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <ProductEditPage />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryProvider>
+  )
+}
+
+export default App
