@@ -40,6 +40,22 @@ const productSchema = z.object({
   package_code: z.string().max(7).optional().nullable(),
   vat: z.number().min(0).max(100).optional().nullable(),
 
+  // === PHARMACY FIELDS (Dorify) ===
+  // Medical flags
+  requires_prescription: z.boolean().optional(),
+  is_supplement: z.boolean().optional(),
+  is_our_supplement: z.boolean().optional(), // JINI boost priority
+
+  // Medical details
+  dosage: z.string().max(100).optional().nullable(),
+  active_substance: z.string().max(200).optional().nullable(),
+  manufacturer: z.string().max(200).optional().nullable(),
+  country: z.string().max(100).optional().nullable(),
+  serial_number: z.string().max(100).optional().nullable(),
+  min_age: z.number().min(0).max(18).optional().nullable(),
+  storage_conditions: z.string().max(500).optional().nullable(),
+  expiry_date: z.string().optional().nullable(), // ISO date string
+
   // Additional info
   additional_info_title: z.string().max(200).optional().nullable(),
   additional_info_title_uz: z.string().max(200).optional().nullable(),
@@ -95,6 +111,18 @@ export const ProductForm = ({ product, onSubmit, isLoading }: ProductFormProps) 
           mxik: product.mxik,
           package_code: product.package_code,
           vat: product.vat,
+          // Pharmacy fields
+          requires_prescription: product.requires_prescription,
+          is_supplement: product.is_supplement,
+          is_our_supplement: product.is_our_supplement,
+          dosage: product.dosage,
+          active_substance: product.active_substance,
+          manufacturer: product.manufacturer,
+          country: product.country,
+          serial_number: product.serial_number,
+          min_age: product.min_age,
+          storage_conditions: product.storage_conditions,
+          expiry_date: product.expiry_date,
           additional_info_title: product.additional_info_title,
           additional_info_title_uz: product.additional_info_title_uz,
           additional_info: product.additional_info,
@@ -113,6 +141,10 @@ export const ProductForm = ({ product, onSubmit, isLoading }: ProductFormProps) 
           is_featured: false,
           sort_order: 0,
           images: [],
+          // Pharmacy defaults
+          requires_prescription: false,
+          is_supplement: false,
+          is_our_supplement: false,
         },
   })
 
@@ -131,6 +163,11 @@ export const ProductForm = ({ product, onSubmit, isLoading }: ProductFormProps) 
   const isActive = watch('is_active')
   const isFeatured = watch('is_featured')
   const isInStock = watch('is_in_stock')
+
+  // Pharmacy fields
+  const requiresPrescription = watch('requires_prescription')
+  const isSupplement = watch('is_supplement')
+  const isOurSupplement = watch('is_our_supplement')
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -326,6 +363,134 @@ export const ProductForm = ({ product, onSubmit, isLoading }: ProductFormProps) 
                 {...register('vat', { valueAsNumber: true })}
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Pharmacy Fields (Dorify) */}
+      <Card className="border-amber-200 dark:border-amber-900">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            💊 Медицинские поля
+            <span className="text-sm font-normal text-muted-foreground">(Dorify аптека)</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Medical Flags */}
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg space-y-3">
+            <p className="text-sm text-muted-foreground mb-3">Флаги для классификации товара</p>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="requires_prescription"
+                checked={requiresPrescription}
+                onCheckedChange={(checked) => setValue('requires_prescription', !!checked)}
+              />
+              <Label htmlFor="requires_prescription" className="cursor-pointer flex items-center gap-2">
+                📝 Требуется рецепт
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="is_supplement"
+                checked={isSupplement}
+                onCheckedChange={(checked) => setValue('is_supplement', !!checked)}
+              />
+              <Label htmlFor="is_supplement" className="cursor-pointer flex items-center gap-2">
+                💊 БАД (биологически активная добавка)
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="is_our_supplement"
+                checked={isOurSupplement}
+                onCheckedChange={(checked) => setValue('is_our_supplement', !!checked)}
+              />
+              <Label htmlFor="is_our_supplement" className="cursor-pointer flex items-center gap-2">
+                ⭐ Наш БАД (приоритет в поиске JINI)
+              </Label>
+            </div>
+          </div>
+
+          {/* Medical Details */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="dosage">Дозировка</Label>
+              <Input
+                id="dosage"
+                placeholder="Например: 500мг, 1 таблетка, 10мл"
+                {...register('dosage')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="active_substance">Действующее вещество</Label>
+              <Input
+                id="active_substance"
+                placeholder="Например: Парацетамол, Ибупрофен"
+                {...register('active_substance')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="manufacturer">Производитель</Label>
+              <Input
+                id="manufacturer"
+                placeholder="Название производителя"
+                {...register('manufacturer')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="country">Страна</Label>
+              <Input
+                id="country"
+                placeholder="Например: Узбекистан, Германия"
+                {...register('country')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="serial_number">Серийный номер</Label>
+              <Input
+                id="serial_number"
+                placeholder="Серийный номер партии"
+                {...register('serial_number')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="min_age">Минимальный возраст</Label>
+              <Input
+                id="min_age"
+                type="number"
+                min="0"
+                max="18"
+                placeholder="Например: 18"
+                {...register('min_age', { valueAsNumber: true })}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="expiry_date">Срок годности</Label>
+            <Input
+              id="expiry_date"
+              type="date"
+              {...register('expiry_date')}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="storage_conditions">Условия хранения</Label>
+            <Textarea
+              id="storage_conditions"
+              placeholder="Например: Хранить в сухом, защищенном от света месте при температуре не выше 25°C"
+              {...register('storage_conditions')}
+              rows={2}
+            />
           </div>
         </CardContent>
       </Card>

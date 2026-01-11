@@ -62,6 +62,19 @@ export interface Product {
   is_featured: boolean
   created_at: string
   updated_at: string
+
+  // === PHARMACY FIELDS (Dorify) ===
+  requires_prescription?: boolean
+  is_supplement?: boolean
+  is_our_supplement?: boolean  // JINI boost priority
+  dosage?: string
+  active_substance?: string
+  manufacturer?: string
+  country?: string
+  serial_number?: string
+  min_age?: number
+  storage_conditions?: string
+  expiry_date?: string
 }
 
 // Category types
