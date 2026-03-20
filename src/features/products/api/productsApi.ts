@@ -41,7 +41,7 @@ export interface ProductCreateData {
   is_featured?: boolean
 }
 
-export interface ProductUpdateData extends Partial<ProductCreateData> {}
+export type ProductUpdateData = Partial<ProductCreateData>
 
 export const productsApi = {
   getProducts: async (params: ProductsParams = {}): Promise<PaginatedResponse<Product>> => {
@@ -56,17 +56,26 @@ export const productsApi = {
 
     queryParams.append("include_all_translations", "true")
 
-    const response = await apiClient.get<PaginatedResponse<Product>>(
+    const response = await apiClient.get(
       `${ENDPOINTS.PRODUCTS.LIST}?${queryParams.toString()}`
     )
-    return response.data
+    const raw = response.data
+    // Backend returns { products, pagination } — transform to PaginatedResponse
+    return {
+      items: raw.products || [],
+      total: raw.pagination?.total || 0,
+      page: raw.pagination?.page || 1,
+      size: raw.pagination?.limit || params.size || 20,
+      pages: raw.pagination?.pages || 1,
+    } as PaginatedResponse<Product>
   },
 
-  getProduct: async (id: number): Promise<Product> => {
-    const response = await apiClient.get<Product>(
+  getProduct: async (id: number | string): Promise<Product> => {
+    const response = await apiClient.get(
       `${ENDPOINTS.PRODUCTS.GET(id)}?include_all_translations=true`
     )
-    return response.data
+    const raw = response.data
+    return raw.product ?? raw
   },
 
   createProduct: async (data: ProductCreateData): Promise<Product> => {

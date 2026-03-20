@@ -83,8 +83,8 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
       .toLowerCase()
       .trim()
       .replace(/\s+/g, '-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-');
+      .replace(/[^\w-]+/g, '')
+      .replace(/--+/g, '-');
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {

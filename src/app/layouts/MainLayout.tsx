@@ -32,6 +32,105 @@ const navItems = [
   { href: "/settings", label: "Настройки", icon: Settings },
 ]
 
+interface SidebarContentProps {
+  sidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+  location: ReturnType<typeof useLocation>
+  user: ReturnType<typeof useAuth>["user"]
+  logout: ReturnType<typeof useLogout>
+  toggleTheme: () => void
+  resolvedTheme: string
+}
+
+const SidebarContent = ({
+  setSidebarOpen,
+  location,
+  user,
+  logout,
+  toggleTheme,
+  resolvedTheme,
+}: SidebarContentProps) => (
+  <>
+    <div className="h-16 border-b flex items-center justify-between px-6">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+          <span className="text-primary font-bold">A</span>
+        </div>
+        <h1 className="text-xl font-bold">Admin Panel</h1>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="lg:hidden"
+        onClick={() => setSidebarOpen(false)}
+      >
+        <X className="h-5 w-5" />
+      </Button>
+    </div>
+
+    <nav className="flex-1 p-4 space-y-2">
+      {navItems.map((item) => {
+        const isActive = location.pathname === item.href ||
+                        location.pathname.startsWith(item.href + "/")
+        const Icon = item.icon
+
+        return (
+          <Link key={item.href} to={item.href} onClick={() => setSidebarOpen(false)}>
+            <Button
+              variant={isActive ? "secondary" : "ghost"}
+              className={cn(
+                "w-full justify-start",
+                isActive && "bg-primary/10 text-primary hover:bg-primary/20"
+              )}
+            >
+              <Icon className="mr-2 h-4 w-4" />
+              {item.label}
+            </Button>
+          </Link>
+        )
+      })}
+    </nav>
+
+    <div className="p-4 border-t space-y-3">
+      {/* Theme Toggle */}
+      <Button
+        variant="outline"
+        className="w-full justify-start"
+        onClick={toggleTheme}
+      >
+        {resolvedTheme === 'dark' ? (
+          <>
+            <Sun className="mr-2 h-4 w-4" />
+            Светлая тема
+          </>
+        ) : (
+          <>
+            <Moon className="mr-2 h-4 w-4" />
+            Тёмная тема
+          </>
+        )}
+      </Button>
+
+      {/* User Info */}
+      <div className="text-sm">
+        <div className="font-medium">{user?.first_name || user?.username || "Admin"}</div>
+        <div className="text-xs text-muted-foreground">Администратор</div>
+      </div>
+
+      {/* Logout */}
+      <Button
+        variant="outline"
+        className="w-full justify-start text-destructive hover:text-destructive"
+        onClick={() => logout.mutate()}
+        disabled={logout.isPending}
+      >
+        <LogOut className="mr-2 h-4 w-4" />
+        Выйти
+      </Button>
+    </div>
+  </>
+)
+
 export const MainLayout = ({ children }: MainLayoutProps) => {
   const { user } = useAuth()
   const logout = useLogout()
@@ -43,93 +142,21 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
   }
 
-  const SidebarContent = () => (
-    <>
-      <div className="h-16 border-b flex items-center justify-between px-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-            <span className="text-primary font-bold">A</span>
-          </div>
-          <h1 className="text-xl font-bold">Admin Panel</h1>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        >
-          <X className="h-5 w-5" />
-        </Button>
-      </div>
-
-      <nav className="flex-1 p-4 space-y-2">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.href ||
-                          location.pathname.startsWith(item.href + "/")
-          const Icon = item.icon
-
-          return (
-            <Link key={item.href} to={item.href} onClick={() => setSidebarOpen(false)}>
-              <Button
-                variant={isActive ? "secondary" : "ghost"}
-                className={cn(
-                  "w-full justify-start",
-                  isActive && "bg-primary/10 text-primary hover:bg-primary/20"
-                )}
-              >
-                <Icon className="mr-2 h-4 w-4" />
-                {item.label}
-              </Button>
-            </Link>
-          )
-        })}
-      </nav>
-
-      <div className="p-4 border-t space-y-3">
-        {/* Theme Toggle */}
-        <Button
-          variant="outline"
-          className="w-full justify-start"
-          onClick={toggleTheme}
-        >
-          {resolvedTheme === 'dark' ? (
-            <>
-              <Sun className="mr-2 h-4 w-4" />
-              Светлая тема
-            </>
-          ) : (
-            <>
-              <Moon className="mr-2 h-4 w-4" />
-              Тёмная тема
-            </>
-          )}
-        </Button>
-
-        {/* User Info */}
-        <div className="text-sm">
-          <div className="font-medium">{user?.first_name || user?.username || "Admin"}</div>
-          <div className="text-xs text-muted-foreground">Администратор</div>
-        </div>
-
-        {/* Logout */}
-        <Button
-          variant="outline"
-          className="w-full justify-start text-destructive hover:text-destructive"
-          onClick={() => logout.mutate()}
-          disabled={logout.isPending}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Выйти
-        </Button>
-      </div>
-    </>
-  )
+  const sidebarProps: SidebarContentProps = {
+    sidebarOpen,
+    setSidebarOpen,
+    location,
+    user,
+    logout,
+    toggleTheme,
+    resolvedTheme,
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 border-r bg-card flex-col">
-        <SidebarContent />
+        <SidebarContent {...sidebarProps} />
       </aside>
 
       {/* Mobile Sidebar Overlay */}
@@ -150,7 +177,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="fixed left-0 top-0 bottom-0 w-64 border-r bg-card flex flex-col z-50 lg:hidden"
             >
-              <SidebarContent />
+              <SidebarContent {...sidebarProps} />
             </motion.aside>
           </>
         )}

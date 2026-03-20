@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 
 type Theme = 'light' | 'dark' | 'system'
 
@@ -28,10 +28,12 @@ export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProvid
     return (localStorage.getItem(THEME_KEY) as Theme) || defaultTheme
   })
 
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
-    if (theme === 'system') return getSystemTheme()
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(getSystemTheme)
+
+  const resolvedTheme = useMemo<'light' | 'dark'>(() => {
+    if (theme === 'system') return systemTheme
     return theme
-  })
+  }, [theme, systemTheme])
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -39,30 +41,21 @@ export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProvid
     // Remove both classes first
     root.classList.remove('light', 'dark')
 
-    // Determine actual theme
-    const actualTheme = theme === 'system' ? getSystemTheme() : theme
-    setResolvedTheme(actualTheme)
-
     // Apply theme class
-    root.classList.add(actualTheme)
-  }, [theme])
+    root.classList.add(resolvedTheme)
+  }, [resolvedTheme])
 
   useEffect(() => {
     // Listen for system theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 
     const handleChange = () => {
-      if (theme === 'system') {
-        const newTheme = getSystemTheme()
-        setResolvedTheme(newTheme)
-        document.documentElement.classList.remove('light', 'dark')
-        document.documentElement.classList.add(newTheme)
-      }
+      setSystemTheme(getSystemTheme())
     }
 
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme])
+  }, [])
 
   const setTheme = (newTheme: Theme) => {
     localStorage.setItem(THEME_KEY, newTheme)
@@ -76,6 +69,7 @@ export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProvid
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTheme() {
   const context = useContext(ThemeContext)
   if (context === undefined) {
