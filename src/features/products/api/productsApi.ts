@@ -56,26 +56,17 @@ export const productsApi = {
 
     queryParams.append("include_all_translations", "true")
 
-    const response = await apiClient.get(
+    const response = await apiClient.get<PaginatedResponse<Product>>(
       `${ENDPOINTS.PRODUCTS.LIST}?${queryParams.toString()}`
     )
-    const raw = response.data
-    // Backend returns { products, pagination } — transform to PaginatedResponse
-    return {
-      items: raw.products || [],
-      total: raw.pagination?.total || 0,
-      page: raw.pagination?.page || 1,
-      size: raw.pagination?.limit || params.size || 20,
-      pages: raw.pagination?.pages || 1,
-    } as PaginatedResponse<Product>
+    return response.data
   },
 
-  getProduct: async (id: number | string): Promise<Product> => {
-    const response = await apiClient.get(
+  getProduct: async (id: number): Promise<Product> => {
+    const response = await apiClient.get<Product>(
       `${ENDPOINTS.PRODUCTS.GET(id)}?include_all_translations=true`
     )
-    const raw = response.data
-    return raw.product ?? raw
+    return response.data
   },
 
   createProduct: async (data: ProductCreateData): Promise<Product> => {
